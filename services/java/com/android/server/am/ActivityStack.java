@@ -75,9 +75,12 @@ import android.os.Trace;
 import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.EventLog;
+import android.util.Log;
 import android.util.Slog;
 import android.view.Display;
 import com.android.internal.app.ActivityTrigger;
+import android.view.IWindowManager;
+import android.view.WindowManagerGlobal;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -267,7 +270,6 @@ final class ActivityStack {
     }
 
     final class ActivityStackHandler extends Handler {
-
         //public Handler() {
         //    if (localLOGV) Slog.v(TAG, "Handler started!");
         //}
@@ -1151,7 +1153,16 @@ final class ActivityStack {
                     // Aggregate current change flags.
                     configChanges |= r.configChangeFlags;
 
-                    if (r.fullscreen) {
+                    boolean isSplitView = false;
+
+                    try {
+                        IWindowManager wm = (IWindowManager) WindowManagerGlobal.getWindowManagerService();
+                        isSplitView = wm.isTaskSplitView(r.task.taskId);
+                    } catch (RemoteException e) {
+                        Slog.e(TAG, "Cannot get split view status", e);
+                    }
+
+                    if (r.fullscreen && !isSplitView) {
                         // At this point, nothing else needs to be shown
                         if (DEBUG_VISBILITY) Slog.v(TAG, "Fullscreen: at " + r);
                         behindFullscreen = true;
@@ -1258,6 +1269,7 @@ final class ActivityStack {
      * nothing happened.
      */
     final boolean resumeTopActivityLocked(ActivityRecord prev) {
+        Log.e("XPLOD", "Resume Top Activity Locked " + prev);
         return resumeTopActivityLocked(prev, null);
     }
 
@@ -1358,10 +1370,6 @@ final class ActivityStack {
         next.updateOptionsLocked(options);
 
         if (DEBUG_SWITCH) Slog.v(TAG, "Resuming " + next);
-
-        if (mActivityTrigger != null) {
-            mActivityTrigger.activityResumeTrigger(next.intent);
-        }
 
         // If we are currently pausing an activity, then don't do anything
         // until that is done.
@@ -1770,9 +1778,6 @@ final class ActivityStack {
 
         r.putInHistory();
         r.frontOfTask = newTask;
-        if (mActivityTrigger != null) {
-            mActivityTrigger.activityStartTrigger(r.intent);
-        }
         if (!isHomeStack() || numActivities() > 0) {
             // We want to show the starting preview window if we are
             // switching to a new task, or the next activity's process is
@@ -2547,7 +2552,6 @@ final class ActivityStack {
         // activity into the stopped state and then finish it.
         if (localLOGV) Slog.v(TAG, "Enqueueing pending finish: " + r);
         mStackSupervisor.mFinishingActivities.add(r);
-        r.resumeKeyDispatchingLocked();
         mStackSupervisor.getFocusedStack().resumeTopActivityLocked(null);
         return r;
     }
@@ -3182,7 +3186,9 @@ final class ActivityStack {
 
         final TaskRecord task = mResumedActivity != null ? mResumedActivity.task : null;
         if (task == tr && task.mOnTopOfHome || numTasks <= 1) {
-            tr.mOnTopOfHome = false;
+            if (task != null) {
+                task.mOnTopOfHome = false;
+            }
             return mStackSupervisor.resumeHomeActivity(null);
         }
 
