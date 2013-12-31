@@ -6751,6 +6751,13 @@ public final class Settings {
         public static final String WAKEUP_WHEN_PLUGGED_UNPLUGGED = "wakeup_when_plugged_unplugged";
 
         /**
+         * Show battery percentage indicator front of battery icon
+         *
+         * @hide
+         */
+        public static final String BATTERY_PERCENTAGE_INDICATOR = "battery_percentage_indicator";
+
+        /**
          * Whether double tapping the volume keys toggles the rotation lock or not.
          * Boolean. Default true.
          * @hide
@@ -6802,10 +6809,48 @@ public final class Settings {
         public static final String QUICK_TOGGLE_VIBRATE = "statusbar_toggles_vibrate_on_click";
 
         /**
+         * @hide
+         */
+        public static final String HIDE_BATTERY_ICON = "hide_battery_icon";
+
+        /**
          * Whether to use the custom quick unlock screen control
          * @hide
          */
         public static final String LOCKSCREEN_QUICK_UNLOCK_CONTROL = "lockscreen_quick_unlock_control";
+
+        /**
+         * The hostname for this device
+         * @hide
+         */
+        public static final String DEVICE_HOSTNAME = "device_hostname";
+
+        /**
+         * enable and disable fast toggle in settings
+         *
+         * @hide
+         */
+        public static final String FAST_TOGGLE = "fast_toggle";
+
+        /**
+         * enable and disable fast toggle in settings
+         *
+         * @hide
+         */
+        public static final String CHOOSE_FASTTOGGLE_SIDE = "choose_fasttoggle_side";
+
+        /**
+         * Swipe to switch from notifications to tiles
+         *
+         * @hide
+         */
+        public static final String SWIPE_TO_SWITCH = "swipe_to_switch";
+         
+        /**
+         * Should the non-intrsive incall ui be used
+         * @hide
+         */
+        public static final String NON_INTRUSIVE_INCALL = "non_intrusive_incall";
 
     }
 
@@ -7024,3 +7069,4 @@ public final class Settings {
         return "android-" + Long.toHexString(androidId);
     }
 }
+
