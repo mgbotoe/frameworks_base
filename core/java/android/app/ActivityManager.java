@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2007 The Android Open Source Project
  * This code has been modified.  Portions copyright (C) 2010, T-Mobile USA, Inc.
@@ -286,14 +285,14 @@ public class ActivityManager {
     /** @hide Process is being cached for later use and is empty. */
     public static final int PROCESS_STATE_CACHED_EMPTY = 13;
 
-    private static boolean GfxAccelCheck;
+    private static boolean NOPE;
 
     /*package*/ ActivityManager(Context context, Handler handler) {
         mContext = context;
         mHandler = handler;
 
-        GfxAccelCheck = (isLowRamDeviceStatic() ||
-                !HardwareRenderer.isAvailable() ||
+        NOPE = (isLowRamDeviceStatic() ||
+                !HardwareRenderer.isAvailable()      ||
                 Resources.getSystem().getBoolean(com.android.internal.R.bool.config_avoidGfxAccel));
     }
 
@@ -466,8 +465,8 @@ public class ActivityManager {
      * @hide
      */
     static public boolean isHighEndGfx() {
-        if (GfxAccelCheck) {
-        return false;
+        if (NOPE) {
+			return false;
         }
         return true;
     }
@@ -578,6 +577,11 @@ public class ActivityManager {
      * recent tasks that currently are not available to the user.
      */
     public static final int RECENT_IGNORE_UNAVAILABLE = 0x0002;
+
+    /**
+     * @hide
+     */
+    public static final int RECENT_DO_NOT_COUNT_EXCLUDED = 0x0004;
 
     /**
      * Return a list of the tasks that the user has recently launched, with

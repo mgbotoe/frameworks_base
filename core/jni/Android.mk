@@ -4,6 +4,7 @@ include $(CLEAR_VARS)
 LOCAL_CFLAGS += -DHAVE_CONFIG_H -DKHTML_NO_EXCEPTIONS -DGKWQ_NO_JAVA
 LOCAL_CFLAGS += -DNO_SUPPORT_JS_BINDING -DQT_NO_WHEELEVENT -DKHTML_NO_XBL
 LOCAL_CFLAGS += -U__APPLE__
+LOCAL_CFLAGS += -fstrict-aliasing
 
 ifeq ($(TARGET_ARCH), arm)
 	LOCAL_CFLAGS += -DPACKED="__attribute__ ((packed))"
@@ -60,6 +61,7 @@ LOCAL_SRC_FILES:= \
 	android_text_AndroidCharacter.cpp \
 	android_text_AndroidBidi.cpp \
 	android_os_Debug.cpp \
+	android_os_FileUtils.cpp \
 	android_os_MemoryFile.cpp \
 	android_os_MessageQueue.cpp \
 	android_os_Parcel.cpp \
@@ -84,7 +86,6 @@ LOCAL_SRC_FILES:= \
 	android_util_XmlBlock.cpp \
 	android_util_PackageRedirectionMap.cpp \
 	android/graphics/AutoDecodeCancel.cpp \
-	android/graphics/Bitmap.cpp \
 	android/graphics/BitmapFactory.cpp \
 	android/graphics/Camera.cpp \
 	android/graphics/Canvas.cpp \
@@ -152,6 +153,7 @@ LOCAL_SRC_FILES:= \
 
 ifeq ($(call is-vendor-board-platform,QCOM),true)
 LOCAL_SRC_FILES += com_android_internal_app_ActivityTrigger.cpp
+LOCAL_CFLAGS += -DQCOM_ACTIVITY_TRIGGER
 endif
 
 LOCAL_C_INCLUDES += \
@@ -224,6 +226,20 @@ LOCAL_CFLAGS += -DHAVE_QC_TIME_SERVICES=1
 LOCAL_SHARED_LIBRARIES += libtime_genoff
 $(shell mkdir -p $(OUT)/obj/SHARED_LIBRARIES/libtime_genoff_intermediates/)
 $(shell touch $(OUT)/obj/SHARED_LIBRARIES/libtime_genoff_intermediates/export_includes)
+endif
+
+ifeq ($(TARGET_ARCH), arm)
+  ifeq ($(ARCH_ARM_HAVE_NEON),true)
+    TARGET_arm_CFLAGS += -DUSE_NEON_BITMAP_OPTS -mvectorize-with-neon-quad
+    LOCAL_SRC_FILES+= \
+		android/graphics/Bitmap.cpp.arm
+  else
+    LOCAL_SRC_FILES+= \
+		android/graphics/Bitmap.cpp
+  endif
+else
+    LOCAL_SRC_FILES+= \
+		android/graphics/Bitmap.cpp
 endif
 
 ifeq ($(USE_OPENGL_RENDERER),true)

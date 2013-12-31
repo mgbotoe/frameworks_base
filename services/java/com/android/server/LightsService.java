@@ -41,9 +41,7 @@ public class LightsService {
     public static final int LIGHT_ID_WIFI = 7;
     public static final int LIGHT_ID_CAPS = 8;
     public static final int LIGHT_ID_FUNC = 9;
-    public static final int LIGHT_ID_WIMAX = 10;
-    public static final int LIGHT_ID_FLASHLIGHT = 11;
-    public static final int LIGHT_ID_COUNT = 12;
+    public static final int LIGHT_ID_COUNT = 10;
 
     public static final int LIGHT_FLASH_NONE = 0;
     public static final int LIGHT_FLASH_TIMED = 1;

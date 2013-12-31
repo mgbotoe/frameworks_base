@@ -21,6 +21,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.database.DataSetObserver;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -180,19 +181,16 @@ public class RecentsHorizontalScrollView extends HorizontalScrollView
 
     @Override
     public void removeAllViewsInLayout() {
+        smoothScrollTo(0, 0);
         int count = mLinearLayout.getChildCount();
-        int scrollX = getScrollX();
-        for (int i = 0, delayCounter = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             final View child = mLinearLayout.getChildAt(i);
-            if (child.getRight() > scrollX) {
-                delayCounter++;
-            }
             postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     dismissChild(child);
                 }
-            }, delayCounter * 150);
+            }, i * 150);
         }
     }
 
@@ -390,5 +388,21 @@ public class RecentsHorizontalScrollView extends HorizontalScrollView
 
     public void setCallback(RecentsCallback callback) {
         mCallback = callback;
+    }
+
+    @Override
+    public void onRtlPropertiesChanged(int layoutDirection) {
+        super.onRtlPropertiesChanged(layoutDirection);
+
+        requestFitSystemWindows();
+    }
+
+    @Override
+    protected boolean fitSystemWindows(Rect insets) {
+        final boolean res = super.fitSystemWindows(insets);
+
+        scrollTo(- mRight + mPaddingRight, 0);
+
+        return res;
     }
 }

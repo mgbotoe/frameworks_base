@@ -46,7 +46,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The Camera class is used to set image capture settings, start/stop preview,
@@ -2121,16 +2120,17 @@ public class Camera {
          */
         public static final String FLASH_MODE_TORCH = "torch";
 
-        /** @hide
-         * Scene mode is off.
-         */
-        public static final String SCENE_MODE_ASD = "asd";
-
         //Values for ISO settings
         /** @hide */
         public static final String ISO_AUTO = "auto";
         /** @hide */
         public static final String ISO_HJR = "ISO_HJR";
+        /** @hide */
+        public static final String ISO_SPORTS = "ISO_SPORTS";
+        /** @hide */
+        public static final String ISO_NIGHT = "ISO_NIGHT";
+        /** @hide */
+        public static final String ISO_MOVIE = "ISO_MOVIE";
         /** @hide */
         public static final String ISO_100 = "ISO100";
         /** @hide */
@@ -2141,6 +2141,15 @@ public class Camera {
         public static final String ISO_800 = "ISO800";
         /** @hide */
         public static final String ISO_1600 = "ISO1600";
+        /** @hide */
+        public static final String ISO_3200 = "ISO3200";
+        /** @hide */
+        public static final String ISO_6400 = "ISO6400";
+
+        /** @hide
+         * Scene mode is off.
+         */
+        public static final String SCENE_MODE_ASD = "asd";
 
         /**
          * Scene mode is off.
@@ -3280,6 +3289,7 @@ public class Camera {
          * @see #getSceneMode()
          */
         public void setSceneMode(String value) {
+            if(getSupportedSceneModes() == null) return;
             set(KEY_SCENE_MODE, value);
         }
 
@@ -3317,6 +3327,7 @@ public class Camera {
          * @see #getFlashMode()
          */
         public void setFlashMode(String value) {
+	    if(getSupportedFlashModes() == null) return;
             set(KEY_FLASH_MODE, value);
         }
 

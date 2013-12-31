@@ -25,6 +25,7 @@ LOCAL_PATH := $(call my-dir)
 # R.java file as a prerequisite.
 # TODO: find a more appropriate way to do this.
 framework_res_source_path := APPS/framework-res_intermediates/src
+framework_iokp_res_source_path := APPS/framework-iokp-res_intermediates/src
 
 # Build the master framework library.
 # The framework contains too many method references (>64K) for poor old DEX.
@@ -63,8 +64,10 @@ LOCAL_SRC_FILES += \
 	core/java/android/app/IActivityPendingResult.aidl \
 	core/java/android/app/IAlarmManager.aidl \
 	core/java/android/app/IBackupAgent.aidl \
+	core/java/android/app/IBatteryService.aidl \
 	core/java/android/app/IInstrumentationWatcher.aidl \
 	core/java/android/app/INotificationManager.aidl \
+	core/java/android/app/IProfileManager.aidl \
 	core/java/android/app/IProcessObserver.aidl \
 	core/java/android/app/ISearchManager.aidl \
 	core/java/android/app/ISearchManagerCallback.aidl \
@@ -179,6 +182,7 @@ LOCAL_SRC_FILES += \
 	core/java/android/printservice/IPrintServiceClient.aidl \
 	core/java/android/service/dreams/IDreamManager.aidl \
 	core/java/android/service/dreams/IDreamService.aidl \
+	core/java/android/service/gesture/IGestureService.aidl \
 	core/java/android/service/wallpaper/IWallpaperConnection.aidl \
 	core/java/android/service/wallpaper/IWallpaperEngine.aidl \
 	core/java/android/service/wallpaper/IWallpaperService.aidl \
@@ -244,8 +248,8 @@ LOCAL_SRC_FILES += \
 	location/java/android/location/IFusedProvider.aidl \
 	location/java/android/location/IGeocodeProvider.aidl \
 	location/java/android/location/IGeofenceProvider.aidl \
-        location/java/android/location/IGeoFencer.aidl \
-        location/java/android/location/IGeoFenceListener.aidl \
+	location/java/android/location/IGeoFencer.aidl \
+	location/java/android/location/IGeoFenceListener.aidl \
 	location/java/android/location/IGpsStatusListener.aidl \
 	location/java/android/location/IGpsStatusProvider.aidl \
 	location/java/android/location/ILocationListener.aidl \
@@ -285,7 +289,8 @@ LOCAL_AIDL_INCLUDES += $(FRAMEWORKS_BASE_JAVA_SRC_DIRS)
 LOCAL_INTERMEDIATE_SOURCES := \
 			$(framework_res_source_path)/android/R.java \
 			$(framework_res_source_path)/android/Manifest.java \
-			$(framework_res_source_path)/com/android/internal/R.java
+			$(framework_res_source_path)/com/android/internal/R.java \
+			$(framework_iokp_res_source_path)/iokp/R.java
 
 LOCAL_NO_STANDARD_LIBRARIES := true
 LOCAL_JAVA_LIBRARIES := bouncycastle conscrypt core core-junit ext okhttp
@@ -301,6 +306,12 @@ include $(BUILD_STATIC_JAVA_LIBRARY)
 framework_res_R_stamp := \
 	$(call intermediates-dir-for,APPS,framework-res,,COMMON)/src/R.stamp
 $(full_classes_compiled_jar): $(framework_res_R_stamp)
+
+# Make sure that R.java and Manifest.java are built before we build
+# the source for this library.
+framework_pac_res_R_stamp := \
+	$(call intermediates-dir-for,APPS,framework-iokp-res,,COMMON)/src/R.stamp
+$(full_classes_compiled_jar): $(framework_iokp_res_R_stamp)
 
 # Build part 1 of the framework library.
 # ============================================================
@@ -325,7 +336,7 @@ framework_module := $(LOCAL_INSTALLED_MODULE)
 # ============================================================
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := framework2
+LOCAL_MODULE := framework-iokp
 LOCAL_MODULE_CLASS := JAVA_LIBRARIES
 LOCAL_NO_STANDARD_LIBRARIES := true
 LOCAL_STATIC_JAVA_LIBRARIES := framework-base
@@ -335,14 +346,15 @@ LOCAL_DX_FLAGS := --core-library
 LOCAL_JAR_PACKAGES := com\* javax\*
 
 include $(BUILD_JAVA_LIBRARY)
-framework2_module := $(LOCAL_INSTALLED_MODULE)
+framework-iokp_module := $(LOCAL_INSTALLED_MODULE)
 
 # Make sure that all framework modules are installed when framework is.
 # ============================================================
 $(framework_module): | $(dir $(framework_module))framework-res.apk
-$(framework_module): | $(dir $(framework_module))framework2.jar
+$(framework_module): | $(dir $(framework_module))framework-iokp-res.apk
+$(framework_module): | $(dir $(framework_module))framework-iokp.jar
 
-framework_built := $(call java-lib-deps,framework framework2)
+framework_built := $(call java-lib-deps,framework framework-iokp)
 
 # Copy AIDL files to be preprocessed and included in the SDK,
 # specified relative to the root of the build tree.
@@ -355,6 +367,8 @@ aidl_files := \
 	frameworks/base/core/java/android/accounts/IAccountAuthenticator.aidl \
 	frameworks/base/core/java/android/accounts/IAccountAuthenticatorResponse.aidl \
 	frameworks/base/core/java/android/app/Notification.aidl \
+	frameworks/base/core/java/android/app/NotificationGroup.aidl \
+	frameworks/base/core/java/android/app/Profile.aidl \
 	frameworks/base/core/java/android/app/PendingIntent.aidl \
 	frameworks/base/core/java/android/appwidget/AppWidgetProviderInfo.aidl \
 	frameworks/base/core/java/android/bluetooth/BluetoothDevice.aidl \
@@ -500,7 +514,7 @@ framework_docs_LOCAL_API_CHECK_JAVA_LIBRARIES := \
 	okhttp \
 	ext \
 	framework \
-	framework2 \
+	framework-iokp \
 	mms-common \
 	telephony-common \
 	voip-common

@@ -416,8 +416,8 @@ public interface WindowManagerPolicy {
         public void switchKeyboardLayout(int deviceId, int direction);
 
         public void shutdown(boolean confirm);
-        public void reboot(String reason);
         public void rebootSafeMode(boolean confirm);
+        public void reboot();
 
         /**
          * Return the window manager lock needed to correctly call "Lw" methods.
@@ -429,6 +429,9 @@ public interface WindowManagerPolicy {
 
         /** Unregister a system listener for touch events */
         void unregisterPointerEventListener(PointerEventListener listener);
+
+        /** Fast way to post time-critical systemui flags to window manaegr*/
+        void addSystemUIVisibilityFlag(int flag);
     }
 
     public interface PointerEventListener {
@@ -1066,7 +1069,6 @@ public interface WindowManagerPolicy {
 
     /**
      * name of package being worked on during boot time message
-     * @hide
      */
     public void setPackageName(String pkgName);
 
@@ -1146,6 +1148,11 @@ public interface WindowManagerPolicy {
     public boolean hasNavigationBar();
 
     /**
+     * Specifies whether device can generate KEY_ACTION_MENU keypress
+     */
+    public boolean hasMenuKeyEnabled();
+
+    /**
      * Lock the device now.
      */
     public void lockNow(Bundle options);
@@ -1200,4 +1207,11 @@ public interface WindowManagerPolicy {
      * @param enabled Whether touch exploration is enabled.
      */
     public void setTouchExplorationEnabled(boolean enabled);
+
+    /**
+     * Check if immersive mode hides navigation bar
+     *
+     * @return True if navbar can be hidden by immersive mode
+     */
+    public boolean isImmersiveMode(int vis);
 }
