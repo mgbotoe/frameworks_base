@@ -75,17 +75,6 @@ public class Clock extends TextView implements DemoMode {
 
     protected int mClockColor = getResources().getColor(R.color.status_bar_clock_color);
 
-    private ContentObserver mObserver = new ContentObserver(new Handler()) {
-        @Override
-        public void onChange(boolean selfChange) {
-            updateSettings();
-        }
-
-        public void onChange(boolean selfChange, android.net.Uri uri) {
-            updateSettings();
-        };
-    };
-
     public Clock(Context context) {
         this(context, null);
     }
@@ -105,7 +94,6 @@ public class Clock extends TextView implements DemoMode {
         if (!mAttached) {
             mAttached = true;
             IntentFilter filter = new IntentFilter();
-            ContentResolver resolver = mContext.getContentResolver();
 
             filter.addAction(Intent.ACTION_TIME_TICK);
             filter.addAction(Intent.ACTION_TIME_CHANGED);
@@ -114,18 +102,6 @@ public class Clock extends TextView implements DemoMode {
             filter.addAction(Intent.ACTION_USER_SWITCHED);
 
             getContext().registerReceiver(mIntentReceiver, filter, null, getHandler());
-            resolver.registerContentObserver(Settings.AOKP
-                    .getUriFor(Settings.AOKP.STATUSBAR_CLOCK_AM_PM_STYLE),
-                    false, mObserver);
-            resolver.registerContentObserver(Settings.AOKP
-                    .getUriFor(Settings.AOKP.STATUSBAR_CLOCK_STYLE),
-                    false, mObserver);
-            resolver.registerContentObserver(Settings.AOKP
-                    .getUriFor(Settings.AOKP.STATUSBAR_CLOCK_COLOR),
-                    false, mObserver);
-            resolver.registerContentObserver(Settings.AOKP
-                    .getUriFor(Settings.AOKP.STATUSBAR_CLOCK_WEEKDAY),
-                    false, mObserver);
         }
 
         // NOTE: It's safe to do these after registering the receiver since the receiver always runs
@@ -133,6 +109,10 @@ public class Clock extends TextView implements DemoMode {
 
         // The time zone may have changed while the receiver wasn't registered, so update the Time
         mCalendar = Calendar.getInstance(TimeZone.getDefault());
+
+        SettingsObserver settingsObserver = new SettingsObserver(new Handler());
+        settingsObserver.observe();
+        updateSettings();
     }
 
     @Override
@@ -140,7 +120,6 @@ public class Clock extends TextView implements DemoMode {
         super.onDetachedFromWindow();
         if (mAttached) {
             getContext().unregisterReceiver(mIntentReceiver);
-            getContext().getContentResolver().unregisterContentObserver(mObserver);
             mAttached = false;
         }
     }

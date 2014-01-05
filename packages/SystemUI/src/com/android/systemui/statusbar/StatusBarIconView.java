@@ -53,18 +53,6 @@ public class StatusBarIconView extends AnimatedImageView {
     private String mNumberText;
     private Notification mNotification;
     private boolean mShowNotificationCount;
-    private boolean mAttached;
-
-    private  ContentObserver mObserver = new ContentObserver(new Handler()) {
-        @Override
-        public void onChange(boolean selfChange) {
-            updateSettings();
-        }
-
-        public void onChange(boolean selfChange, android.net.Uri uri) {
-            updateSettings();
-        };
-    };
 
     public StatusBarIconView(Context context, String slot, Notification notification) {
         super(context);
@@ -82,6 +70,9 @@ public class StatusBarIconView extends AnimatedImageView {
         mShowNotificationCount = Settings.AOKP.getInt(mContext.getContentResolver(),
                 Settings.AOKP.STATUSBAR_NOTIF_COUNT, 0) == 1;
         setContentDescription(notification);
+
+        SettingsObserver observer = new SettingsObserver(new Handler());
+        observer.observe();
 
         // We do not resize and scale system icons (on the right), only notification icons (on the
         // left).
@@ -104,22 +95,6 @@ public class StatusBarIconView extends AnimatedImageView {
         final float scale = (float)imageBounds / (float)outerBounds;
         setScaleX(scale);
         setScaleY(scale);
-    }
-
-    @Override
-    public void onAttachedToWindow() {
-	super.onAttachedToWindow();
-        mAttached = true;
-        mContext.getContentResolver().registerContentObserver(
-                    Settings.AOKP.getUriFor(Settings.AOKP.STATUSBAR_NOTIF_COUNT),
-                    false, mObserver);
-    }
-
-    @Override
-    public void onDetachedFromWindow() {
-	super.onDetachedFromWindow();
-        mAttached = false;
-        mContext.getContentResolver().unregisterContentObserver(mObserver);
     }
 
     private static boolean streq(String a, String b) {
@@ -331,10 +306,27 @@ public class StatusBarIconView extends AnimatedImageView {
             + " notification=" + mNotification + ")";
     }
 
-    public void updateSettings() {
-        mShowNotificationCount = Settings.AOKP.getInt(
-                mContext.getContentResolver(),
-                Settings.AOKP.STATUSBAR_NOTIF_COUNT, 0) == 1;
-        set(mIcon, true);
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            mContext.getContentResolver().registerContentObserver(
+                    Settings.AOKP.getUriFor(Settings.AOKP.STATUSBAR_NOTIF_COUNT),
+                    false, this);
+        }
+
+        void unobserve() {
+            mContext.getContentResolver().unregisterContentObserver(this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            mShowNotificationCount = Settings.AOKP.getInt(
+                    mContext.getContentResolver(),
+                    Settings.AOKP.STATUSBAR_NOTIF_COUNT, 0) == 1;
+            set(mIcon, true);
+        }
     }
 }
